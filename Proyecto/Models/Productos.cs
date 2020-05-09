@@ -52,8 +52,29 @@ namespace Proyecto.Models
             }
             Precio = Convert.ToDouble(datos1[2].Trim());
         }
+        public Productos LeerProducto(string pathArch, int posi,CifradoS cif)
+        {
+            Productos aux = new Productos();
+            using (var stream = new FileStream(pathArch, FileMode.Open))
+            {
+                
+                    
+                    stream.Seek(posi, SeekOrigin.Begin);
+                    byte[] lectura = new byte[aux.FixedSizeText];
 
-        public Nodo<Productos> LeerNodo(string pathArch, int posi)
+                    stream.Read(lectura, 0, aux.FixedSizeText);
+                cif.ConvertirAscci(lectura);  //Obtengo los codigos Ascci del buffer
+                cif.InicioDesCifrado();//inicio el cifrado del buffer   
+                string datos = Encoding.UTF8.GetString(cif.escribir, 0, cif.escribir.Length);
+                    aux.LLenarProducto(datos);
+                    
+
+                
+                stream.Close();
+            }
+            return aux;
+        }
+        public Nodo<Productos> LeerNodo(string pathArch, int posi, CifradoS cif)
         {
             Nodo<Productos> nodo = new Nodo<Productos>();
             using (var stream = new FileStream(pathArch, FileMode.Open))
@@ -63,7 +84,9 @@ namespace Proyecto.Models
                 stream.Seek(posi, SeekOrigin.Begin);
                 byte[] lectura = new byte[nodo.FixedSizeText];
                 stream.Read(lectura, 0, nodo.FixedSizeText);
-                string datos = Encoding.UTF8.GetString(lectura, 0, lectura.Length);
+                cif.ConvertirAscci(lectura);  //Obtengo los codigos Ascci del buffer
+                cif.InicioDesCifrado();//inicio el cifrado del buffer   
+                string datos = Encoding.UTF8.GetString(cif.escribir, 0, cif.escribir.Length);
                 nodo.LlenarNodo(datos);
                 posi = posi + nodo.FixedSizeText;
                 for (int i = 0; i < nodo.Values.Length; i++)
@@ -72,7 +95,9 @@ namespace Proyecto.Models
                     stream.Seek(posi + (aux.FixedSizeText * i), SeekOrigin.Begin);
                     lectura = new byte[aux.FixedSizeText];
                     stream.Read(lectura, 0, aux.FixedSizeText);
-                    datos = Encoding.UTF8.GetString(lectura, 0, lectura.Length);
+                    cif.ConvertirAscci(lectura);  //Obtengo los codigos Ascci del buffer
+                    cif.InicioDesCifrado();//inicio el cifrado del buffer   
+                    datos = Encoding.UTF8.GetString(cif.escribir, 0, cif.escribir.Length);
                     aux.LLenarProducto(datos);
                     nodo.Values[i] = aux;
 
@@ -82,7 +107,7 @@ namespace Proyecto.Models
             return nodo;
 
         }
-        public void EscribirNodo(string pathArch, int pos, Nodo<Productos> nodo)
+        public void EscribirNodo(string pathArch, int pos, Nodo<Productos> nodo,CifradoS cif)
         {
             Productos vacio = new Productos();
             vacio.Id = -1;
@@ -98,14 +123,18 @@ namespace Proyecto.Models
                     if (nodo.Values[i] != null)
                     {
                         escribir = nodo.Values[i].ToFixedSizeString();
+                        cif.ConvertirAscci(Encoding.ASCII.GetBytes(escribir));  //Obtengo los codigos Ascci del buffer
+                        cif.InicioCifrado();//inicio el cifrado del buffer   
                         stream.Seek(pos + nodo.FixedSizeText + (i * nodo.Values[i].FixedSizeText), SeekOrigin.Begin);
-                        stream.Write(Encoding.ASCII.GetBytes(escribir), 0, escribir.Length);
+                        stream.Write(cif.escribir, 0, escribir.Length);
                     }
                     else
                     {
                         escribir = vacio.ToFixedSizeString();
+                        cif.ConvertirAscci(Encoding.ASCII.GetBytes(escribir));  //Obtengo los codigos Ascci del buffer
+                        cif.InicioCifrado();//inicio el cifrado del buffer   
                         stream.Seek((pos + nodo.FixedSizeText + (i * escribir.Length)), SeekOrigin.Begin);
-                        stream.Write(Encoding.ASCII.GetBytes(escribir), 0, escribir.Length);
+                        stream.Write(cif.escribir, 0, escribir.Length);
                     }
                 }
                 stream.Close();

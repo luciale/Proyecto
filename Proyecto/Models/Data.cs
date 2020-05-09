@@ -9,7 +9,7 @@ namespace Proyecto.Models
     {
         public int grado;
         private static Data _instance= null;
-        
+        public Encabezado encabezado;
 
 
         public static Data Instance

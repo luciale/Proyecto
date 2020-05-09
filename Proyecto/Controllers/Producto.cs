@@ -21,8 +21,10 @@ namespace Proyecto.Controllers
             produc.Id = Convert.ToInt32(Request.Form["Id"]);
             produc.Nombre = Request.Form["Nombre"];
             produc.Precio = Convert.ToDouble(Request.Form["Precio"]);
-
-            Encabezado encabezado = new Encabezado();
+            int clave = Convert.ToInt32(Request.Form["clave"]);
+            CifradoS cif = new CifradoS();
+           
+                Encabezado encabezado = new Encabezado();
             var folderName = Path.Combine("Resources", "Files");
             var pathToSave = Path.Combine(Directory.GetCurrentDirectory(), folderName);
             var pathArch = Path.Combine(pathToSave, "arbol.dat");
@@ -32,7 +34,16 @@ namespace Proyecto.Controllers
                 encabezado = encabezado.LeerEncabezado(pathArch);
             }
             Data.Instance.grado = encabezado.Grado;
-
+            var pathP = Path.Combine(Directory.GetCurrentDirectory(), "Permutaciones.txt");
+            if (clave >= 0 && clave <= 1023)
+            {
+                cif.DecimalaBinario(clave, 10);
+                cif.LeerPermutaciones(pathP);
+                cif.GenerarLLaves();
+               
+            }
+           
+            
             //LEER RAIZ
             Nodo<Productos> nodo = new Nodo<Productos>();
             int tamnodo = nodo.FixedSizeText + (produc.FixedSizeText * nodo.Values.Length);

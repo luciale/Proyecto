@@ -39,13 +39,15 @@ namespace Proyecto.Models
             return sb.ToString();
         }
 
-        public void EscribirEncabezado(string pathArch)
+        public void EscribirEncabezado(string pathArch,CifradoS cif)
         {
             using (var stream = new FileStream(pathArch, FileMode.OpenOrCreate))
             {
                 stream.Seek(0, SeekOrigin.Begin);
                 string escribir = ToFixedSizeString();
-                stream.Write(Encoding.ASCII.GetBytes(escribir), 0, FixedSizeText);
+                cif.ConvertirAscci(Encoding.ASCII.GetBytes(escribir));  //Obtengo los codigos Ascci del buffer
+                cif.InicioDesCifrado();//inicio el cifrado del buffer   
+                stream.Write(cif.escribir, 0, cif.escribir.Length);
                 stream.Close();
             }
         }
@@ -57,7 +59,7 @@ namespace Proyecto.Models
             Disponible = Convert.ToInt32(datos1[2].Trim());
         }
 
-        public Encabezado LeerEncabezado(string pathArch)
+        public Encabezado LeerEncabezado(string pathArch, CifradoS cif)
         {
             Encabezado encabezado = new Encabezado();
             using (var stream = new FileStream(pathArch, FileMode.Open))
@@ -65,7 +67,9 @@ namespace Proyecto.Models
                 stream.Seek(0, SeekOrigin.Begin);
                 byte[] lectura = new byte[encabezado.FixedSizeText];
                 stream.Read(lectura, 0, encabezado.FixedSizeText);
-                string datos = Encoding.UTF8.GetString(lectura, 0, lectura.Length);
+                cif.ConvertirAscci(lectura);  //Obtengo los codigos Ascci del buffer
+                cif.InicioDesCifrado();//inicio el cifrado del buffer 
+                string datos = Encoding.UTF8.GetString(cif.escribir, 0, cif.escribir.Length);
                 encabezado.LLenarEncabezado(datos);
                 stream.Close();
             }
